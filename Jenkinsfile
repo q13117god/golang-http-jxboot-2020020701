@@ -41,18 +41,31 @@ pipeline {
         container('go') {
           dir('/home/jenkins/go/src/github.com/q13117god/golang-http-jxboot-2020020701') {
             checkout scm
+          }
 
+          dir('/home/jenkins/go/src/github.com/q13117god/golang-http-jxboot-2020020701/charts/golang-http-jxboot-2020020701') {
             // ensure we're not on a detached head
             sh "git checkout master"
             sh "git config --global credential.helper store"
             sh "jx step git credentials"
+          }
 
+          dir('/home/jenkins/go/src/github.com/q13117god/golang-http-jxboot-2020020701') {
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
+          }
+
+          dir('/home/jenkins/go/src/github.com/q13117god/golang-http-jxboot-2020020701/charts/golang-http-jxboot-2020020701') {
             sh "jx step tag --version \$(cat VERSION)"
-            sh "make build"
-            sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml"
-            sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
+          }
+
+          dir('/home/jenkins/go/src/github.com/q13117god/golang-http-jxboot-2020020701') {
+            container('go') {
+              sh "make build"
+              sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml"
+
+              sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
+            }
           }
         }
       }
